@@ -1,0 +1,22 @@
+---
+title: "Final_Tree"
+author: "AmyLiu"
+date: "2023-03-12"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Use the standardized training data to train tree-based models**
+
+```{r}
+library(tree)
+df = read.csv("train_stand.csv")
+```
+
+```{r}
+
+```
+
