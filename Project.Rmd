@@ -1,0 +1,23 @@
+---
+title: "FinalProject"
+author: "Yiyao Liu, Lin Zhou, Yacheng Xiao"
+date: '2023-03-12'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+test <- read.csv("spam-test-named.csv")
+train <- read.csv("spam-train-named.csv")
+```
+
+```{r}
+train_stand <- as.data.frame(scale(train[1: 59]))
+train_log <- log(train)
+train_dis <- discretizeDF(train)
+```
+
+
