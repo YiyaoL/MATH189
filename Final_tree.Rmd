@@ -12,11 +12,45 @@ knitr::opts_chunk$set(echo = TRUE)
 **Use the standardized training data to train tree-based models**
 
 ```{r}
-library(tree)
+#library(tree)
+library(randomForest)
 df = read.csv("train_stand.csv")
+df <- subset(df, select = -c(X))
+```
+```{r}
+# Bagging (Random forests with m=p) and 100 trees
+bag = randomForest(classes~., data=df,
+                           mtry=(ncol(df)-1),importance=TRUE, ntree=100)
+summary(bag)
 ```
 
 ```{r}
+# Prediction on test set for bagging
+yhat.bag = predict(bag.Boston, Boston.test)
 
+# Plot prediction performance
+plot(yhat.bag, true)
+abline (0,1)
+
+# MSE on test set
+mean((yhat.bag-true)^2)
 ```
 
+```{r}
+# Random forests with m=sqrt(p) and 100 trees
+RF.Boston = randomForest(medv~., data=Boston.train,
+                           mtry=4,importance=TRUE, ntree=100)
+summary(RF.Boston)
+```
+
+```{r}
+# Prediction on test set
+yhat.RF = predict(RF.Boston, Boston.test)
+
+# Plot prediction performance
+plot(yhat.RF, true)
+abline(0,1)
+
+# MSE on test set
+mean((yhat.RF -true)^2)
+```
