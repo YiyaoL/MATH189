@@ -17,7 +17,7 @@ train <- read.csv("spam-train-named.csv")
 ```{r}
 train_stand <- as.data.frame(scale(train[1: 59]))
 train_log <- log(train)
-
+train_dis <- discretizeDF(train)
 ```
 
 
