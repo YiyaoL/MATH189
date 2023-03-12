@@ -10,7 +10,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-test <- read.table("spam-test.txt", header = FALSE, sep = ",")
-train <- read.csv("spam-train-named.txt")
+test <- read.csv("spam-test-named.csv")
+train <- read.csv("spam-train-named.csv")
 ```
 
