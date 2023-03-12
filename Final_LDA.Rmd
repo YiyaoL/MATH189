@@ -1,0 +1,63 @@
+---
+title: "Final_LDA"
+author: "AmyLiu"
+date: "2023-03-12"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+**Use the standardized training data to train LDA. The LDA model with 57 variables results in a testing error of 0.1. We also try applying PCA before applying LDA, but a rank of 57 results in a testing error of about 0.2. After testing out different ranks, PCA results in a testing error of 0.18.**
+
+```{r}
+# read in data
+library("MASS")
+train = read.csv("train_stand.csv")
+train <- subset(train, select = -c(X))
+test = read.csv("test_stand.csv")
+test <- subset(test, select = -c(X))
+true = test$classes
+```
+
+```{r}
+# train LDA
+lda.model = lda(classes ~., data = train)
+summary(lda.model)
+```
+
+```{r}
+lda.predicted = predict(lda.model,test)$class
+lda.error = mean(lda.predicted != true) # take mean of number of mismatching across all labels
+cat("Test error rate of model is :", lda.error)
+```
+
+
+----
+**LDA can possibly be improved by: (1) PCA (2) Oversample class 0 (3) regularization (4) cross validation to choose the right number of dimensions (5)remove variables that are highly correlated**
+
+
+```{r}
+# Try PCA
+pca.train = prcomp(subset(train, select = -c(classes)), scale = TRUE, rank=12)$x
+pca.train <- as.data.frame(pca.train)
+classes = train$classes
+pca.train$classes = classes # new df with 26 independent vars and 1 dependent var
+
+lda.pca.model =lda(classes ~ ., data = pca.train, method = "mle")
+summary(lda.pca.model)
+```
+
+
+```{r}
+# prepare test data - PCA everything except classes
+pca.test = prcomp(subset(test, select = -c(classes)), scale = TRUE, rank=12)$x
+pca.test <- as.data.frame(pca.test)
+pca.test$classes = true # new df with 26 independent vars and 1 dependent var
+
+lda.pca.predicted = predict(lda.pca.model, pca.test)$class
+lda.pca.error = mean(lda.pca.predicted != true) # take mean of number of mismatching across all labels
+cat("Test error rate of model is :", lda.pca.error)
+```
+
