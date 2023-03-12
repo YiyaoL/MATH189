@@ -9,48 +9,52 @@ output: pdf_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-**Use the standardized training data to train tree-based models**
+**Use the standardized training data to train tree-based models. Bagging with 100 trees and m = 57 results in testing MSE of 0.043, random forest with m=8 and 100 trees restuls in testing MSE of 0.036. **
 
 ```{r}
-#library(tree)
+# read in data
 library(randomForest)
-df = read.csv("train_stand.csv")
-df <- subset(df, select = -c(X))
+train = read.csv("train_stand.csv")
+train <- subset(train, select = -c(X))
+test = read.csv("test_stand.csv")
+test <- subset(test, select = -c(X))
+true = test$classes
 ```
+
 ```{r}
 # Bagging (Random forests with m=p) and 100 trees
-bag = randomForest(classes~., data=df,
-                           mtry=(ncol(df)-1),importance=TRUE, ntree=100)
-summary(bag)
+bag.model = randomForest(classes~., data=train,
+                           mtry=(ncol(train)-1),importance=TRUE, ntree=100)
+summary(bag.model)
 ```
 
 ```{r}
 # Prediction on test set for bagging
-yhat.bag = predict(bag.Boston, Boston.test)
+bag.predicted = predict(bag.model, test)
 
 # Plot prediction performance
-plot(yhat.bag, true)
+plot(bag.predicted, true)
 abline (0,1)
 
 # MSE on test set
-mean((yhat.bag-true)^2)
+mean((bag.predicted-true)^2)
 ```
 
 ```{r}
-# Random forests with m=sqrt(p) and 100 trees
-RF.Boston = randomForest(medv~., data=Boston.train,
-                           mtry=4,importance=TRUE, ntree=100)
-summary(RF.Boston)
+# Random forests with m=sqrt(p) and 100 trees. p=57, let m be 8
+RF.model = randomForest(classes~., data=train,
+                           mtry=8,importance=TRUE, ntree=100)
+summary(RF.model)
 ```
 
 ```{r}
 # Prediction on test set
-yhat.RF = predict(RF.Boston, Boston.test)
+RF.predicted = predict(RF.model, test)
 
 # Plot prediction performance
-plot(yhat.RF, true)
+plot(RF.predicted, true)
 abline(0,1)
 
 # MSE on test set
-mean((yhat.RF -true)^2)
+mean((RF.predicted -true)^2)
 ```
