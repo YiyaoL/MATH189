@@ -16,8 +16,40 @@ train <- read.csv("spam-train-named.csv")
 
 ```{r}
 train_stand <- as.data.frame(scale(train[1: 59]))
-train_log <- log(train)
+test_stand <- as.data.frame(scale(test[1:59]))
+train_log <- log(train + 1)
+test_stand[59] <- test[59]
+train_stand[59] <- train[59]
+#write.csv(test_stand, "C:/Users/Yacheng X/Desktop/UCSD/Math 189/FinalProject/MATH189\\test_stand.csv", row.names=FALSE)
+#write.csv(train_stand, "C:/Users/Yacheng X/Desktop/UCSD/Math 189/FinalProject/MATH189\\train_stand.csv", row.names=FALSE)
+
+```
+
+
+```{r}
 train_dis <- discretizeDF(train)
+
+```
+
+```{r}
+
+matrix <- c(rep(0, 1533), rep(1, 1534))
+test_matrix = data.matrix(test_stand, rownames.force = NA)
+train_model_1 <- glm.fit(cbind(Itcp=1, train_stand), matrix, family = binomial(), intercept=FALSE)
+pred_prob = sigmoid(test_matrix %*% train_model_1$coef[-1] + train_model_1$coef[1])
+Y_test = c(rep(0, 767), rep(1, 767))
+Y_pred = as.numeric(pred_prob >= 0.5)
+print(1 - mean(Y_pred == Y_test))
+#train_model <- glm(classes ~., family=binomial, data=train_stand)
+#train_view = as.data.frame(train_model$coefficients < 0.05)
+#test_model <- glm(classes ~., family=binomial, data=test_stand)
+#test_view = as.data.frame(test_model$coefficients < 0.05)
+
+```
+```{r}
+sigmoid <- function(t){
+  return(1/(1+exp(-t)))
+}
 ```
 
 
