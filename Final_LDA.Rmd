@@ -26,8 +26,15 @@ true = test$classes
 lda.model = lda(classes ~., data = train)
 summary(lda.model)
 ```
+```{r}
+# training error
+training_res = predict(lda.model, train)$class
+print("Training error: ")
+mean(training_res != train$classes)
+```
 
 ```{r}
+# testing error
 lda.predicted = predict(lda.model,test)$class
 lda.error = mean(lda.predicted != true) # take mean of number of mismatching across all labels
 cat("Test error rate of model is :", lda.error)
@@ -47,6 +54,13 @@ pca.train$classes = classes # new df with 26 independent vars and 1 dependent va
 
 lda.pca.model =lda(classes ~ ., data = pca.train, method = "mle")
 summary(lda.pca.model)
+```
+
+```{r}
+# training error
+training_res = predict(lda.pca.model, pca.train)$class
+print("Training error: ")
+mean(training_res != train$classes)
 ```
 
 
