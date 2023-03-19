@@ -15,24 +15,31 @@ train <- read.csv("spam-train-named.csv")
 ```
 
 ```{r}
-train_stand <- as.data.frame(scale(train[1: 59]))
-test_stand <- as.data.frame(scale(test[1:59]))
+#train_stand <- as.data.frame(scale(train[1: 59]))
+#test_stand <- as.data.frame(scale(test[1:59]))
 train_log <- log(train + 1)
-test_stand[59] <- test[59]
-train_stand[59] <- train[59]
-#write.csv(test_stand, "C:/Users/Yacheng X/Desktop/UCSD/Math 189/FinalProject/MATH189\\test_stand.csv", row.names=FALSE)
-#write.csv(train_stand, "C:/Users/Yacheng X/Desktop/UCSD/Math 189/FinalProject/MATH189\\train_stand.csv", row.names=FALSE)
+train_log$classes <- train_stand$classes
+test_log <- log(test + 1)
+test_log[59] <- test[59]
+train_log[59] <- train[59]
+#test_stand[59] <- test[59]
+#train_stand[59] <- train[59]
+write.csv(test_log, "C:/Users/xiaoy/OneDrive/Documents/GitHub/MATH189\\test_log.csv", row.names=FALSE)
+write.csv(train_log, "C:/Users/xiaoy/OneDrive/Documents/GitHub/MATH189\\train_log.csv", row.names=FALSE)
 
 ```
 
 
 ```{r}
-train_dis <- discretizeDF(train)
-
+train_dis <- as.data.frame(ifelse(train[-59] > 0, 1, 0))
+test_dis <- as.data.frame(ifelse(test[-59] > 0, 1, 0))
+train_dis$classes <- train$classes
+test_dis$classes <- test$classes
+write.csv(test_dis, "C:/Users/xiaoy/OneDrive/Documents/GitHub/MATH189\\test_dis.csv", row.names=FALSE)
+write.csv(train_dis, "C:/Users/xiaoy/OneDrive/Documents/GitHub/MATH189\\train_dis.csv", row.names=FALSE)
 ```
 
 ```{r}
-
 matrix <- c(rep(0, 1533), rep(1, 1534))
 test_matrix = data.matrix(test_stand, rownames.force = NA)
 train_model_1 <- glm.fit(cbind(Itcp=1, train_stand), matrix, family = binomial(), intercept=FALSE)
