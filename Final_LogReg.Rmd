@@ -8,7 +8,7 @@ output: pdf_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
-
+**Logistic Regression Model - Standardized**
 ```{r}
 # Read in the datasets
 test_stand <- read.csv("test_stand.csv")
@@ -24,6 +24,18 @@ library(dplyr)
 library(rlist)
 train_model <- glm(classes ~., family=binomial, data=train_stand)
 test_model <- glm(classes ~., family=binomial, data=test_stand)
+# Confusion matrix
+Probs_raw_train = predict(train_model, type='response')
+Probs_raw_test = predict(test_model, type='response')
+
+Pred_raw_train = ifelse(Probs_raw_train>0.5, 1, 0)
+table(Pred_raw_train, train_stand$classes)
+mean(Pred_raw_train != train_stand$classes)
+
+Pred_raw_test = ifelse(Probs_test>0.5, 1, 0)
+table(Pred_raw_test, test_stand$classes)
+mean(Pred_raw_test != test_stand$classes)
+
 # find significant features
 p_train = as.list(summary(train_model)$coefficients[,4])
 train_view <- data.frame(p_train)
@@ -57,13 +69,73 @@ Probs_train = predict(train_model_sig, type='response')
 Probs_test = predict(test_model_sig, type='response')
 
 Pred_trend_train = ifelse(Probs_train>0.5, 1, 0)
-table(Pred_trend_train, train$classes)
-mean(Pred_trend_train == train$classes)
+table(Pred_trend_train, train_stand$classes)
+mean(Pred_trend_train != train_stand$classes)
 
 Pred_trend_test = ifelse(Probs_test>0.5, 1, 0)
-table(Pred_trend_test, test$classes)
-mean(Pred_trend_test == test$classes)
+table(Pred_trend_test, test_stand$classes)
+mean(Pred_trend_test != test_stand$classes)
 ```
-**Applying logistic regression on all features results in different significance for the variables in the spam data set. 26 features from training set are significant, and 18 of them from testing set are significant. Applying logistic regression on significant features result in a confusion matrix, and we got a 92.37% accuracy on the training set and 70.53% on the testing set.**
+**Applying logistic regression on all features results in different significance for the variables in the spam data set. 25 features from training set are significant, and 18 of them from testing set are significant. Applying logistic regression on significant features result in a confusion matrix, and we got a 0.076 error rate on the training set and 0.295 error rate on the testing set.**
 
 
+
+**Logistic Regression Model - Log Transform**
+```{r}
+# Read in the datasets
+test_log <- read.csv("test_log.csv")
+train_log <- read.csv("train_log.csv")
+```
+
+```{r}
+# Logistic Regression model
+
+#install.packages("dplyr")
+#install.packages("rlist")
+library(dplyr)
+library(rlist)
+train_model_log <- glm(classes ~., family=binomial, data=train_log)
+test_model_log <- glm(classes ~., family=binomial, data=test_log)
+# find significant features
+p_train_log = as.list(summary(train_model_log)$coefficients[,4])
+train_view_log <- data.frame(p_train_log)
+sig_fea_train_log = list()
+col_names_train_log = colnames(train_view_log)
+for (x in 1:59) {
+  if (train_view_log[,x] < 0.05) {
+    sig_fea_train_log <- append(sig_fea_train_log, col_names_train_log[x]);
+  }
+}
+p_test_log = as.list(summary(test_model_log)$coefficients[,4])
+test_view_log <- data.frame(p_test_log)
+sig_fea_test_log = list()
+col_names_test_log = colnames(test_view_log)
+for (x in 1:59) {
+  if (test_view_log[,x] < 0.05) {
+    sig_fea_test_log <- append(sig_fea_test_log, col_names_test_log[x]);
+  }
+}
+```
+
+```{r}
+# Repeat logistic regresson on significant features
+train_model_sig_log <- glm(classes ~ word_freq_make+word_freq_our+word_freq_remove+word_freq_free+word_freq_your+word_freq_000+word_freq_money+word_freq_hp+word_freq_george+word_freq_data+word_freq_meeting+word_freq_project+word_freq_re+word_freq_edu+char_freq_..3+char_freq_..4+capital_run_length_total, family=binomial, data=train_log)
+
+test_model_sig_log <- glm(classes ~ word_freq_remove+word_freq_free+word_freq_money+word_freq_hp+word_freq_edu+char_freq_..3+capital_run_length_total, family=binomial, data=test_log)
+
+```
+
+```{r}
+# Confusion matrix
+Probs_train_log = predict(train_model_sig_log, type='response')
+Probs_test_log = predict(test_model_sig_log, type='response')
+
+Pred_trend_train_log = ifelse(Probs_train_log >0.5, 1, 0)
+table(Pred_trend_train_log, train_log$classes)
+mean(Pred_trend_train_log != train_log$classes)
+
+Pred_trend_test_log = ifelse(Probs_test_log >0.5, 1, 0)
+table(Pred_trend_test_log, test_log$classes)
+mean(Pred_trend_test_log != test_log$classes)
+```
+**Applying logistic regression on all features results in different significance for the variables in the spam data set. 17 features from training set are significant, and 7 of them from testing set are significant. Applying logistic regression on significant features result in a confusion matrix, and we got a 92.37% accuracy on the training set and 70.53% on the testing set.**
