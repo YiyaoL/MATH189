@@ -1,0 +1,46 @@
+---
+title: "Final_QDA"
+author: "Yacheng Xiao"
+date: "2023-03-17"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+**Quadratic Discriminant Analysis**
+
+```{r}
+# Read in the datasets
+train_qda <- read.csv("train_stand.csv")
+train_qda <- subset(train_qda, select = -c(1))
+test_qda <- read.csv("test_stand.csv")
+test_qda <- subset(test_qda, select = -c(1))
+```
+
+```{r}
+# Train QDA
+library("MASS")
+true_val = test_qda$classes
+qda_stand = qda(classes ~., data = train_qda)
+qda_pred = predict(qda_stand, train_qda)
+pred_val_qda = qda_pred$class
+test_error_qda = mean(pred_val_qda != true_val)
+cat("Test error rate of model is: ", test_error_qda)
+```
+**From normal qda process, we get an error rate of 0.509, which is relevantly high**
+```{r}
+# Apply PCA
+pca_train <- prcomp(train_qda, rank = 6)$x
+pca_train <- as.data.frame(pca_train)
+pca_test = prcomp(test_qda, rank = 6)$x
+pca_test <- as.data.frame(pca_test)
+# QDA with PCA
+qda_model_pca = qda(classes ~., data = pca_train, method = "mle")
+train_pred_pca = predict(qda_model_pca, pca_train)$class
+train_error = mean(train_pred_pca != train_qda$classes)
+test_pred_pca = predict(qda_model_pca, pca_test)$class
+test_error = mean(test_pred_pca != test_qda$classes)
+cat("Train error rate: ", train_error, "\n")
+cat("Test error rate: ", test_error)
+```

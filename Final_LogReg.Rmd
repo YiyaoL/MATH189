@@ -1,0 +1,69 @@
+---
+title: "Final_LogReg"
+author: "Yacheng Xiao"
+date: "2023-03-17"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# Read in the datasets
+test_stand <- read.csv("test_stand.csv")
+train_stand <- read.csv("train_stand.csv")
+```
+
+```{r}
+# Logistic Regression model
+
+#install.packages("dplyr")
+#install.packages("rlist")
+library(dplyr)
+library(rlist)
+train_model <- glm(classes ~., family=binomial, data=train_stand)
+test_model <- glm(classes ~., family=binomial, data=test_stand)
+# find significant features
+p_train = as.list(summary(train_model)$coefficients[,4])
+train_view <- data.frame(p_train)
+sig_fea_train = list()
+col_names_train = colnames(train_view)
+for (x in 1:59) {
+  if (train_view[,x] < 0.05) {
+    sig_fea_train <- append(sig_fea_train, col_names_train[x]);
+  }
+}
+p_test = as.list(summary(test_model)$coefficients[,4])
+test_view <- data.frame(p_test)
+sig_fea_test = list()
+col_names_test = colnames(test_view)
+for (x in 1:59) {
+  if (test_view[,x] < 0.05) {
+    sig_fea_test <- append(sig_fea_test, col_names_test[x]);
+  }
+}
+```
+```{r}
+# Repeat logistic regresson on significant features
+train_model_sig <- glm(classes ~ word_freq_3d+word_freq_our+ word_freq_remove+word_freq_internet+word_freq_order+ word_freq_receive+word_freq_free+word_freq_business+word_freq_you+ word_freq_credit+word_freq_your+word_freq_000+word_freq_hp+ word_freq_george+word_freq_meeting+word_freq_project+word_freq_re+ word_freq_edu+word_freq_table+char_freq_.+char_freq_..3+ char_freq_..4+capital_run_length_average+ capital_run_length_longest+capital_run_length_total, family=binomial, data=train_stand)
+
+test_model_sig <- glm(classes ~ word_freq_our+word_freq_remove+word_freq_free+word_freq_email+word_freq_your+word_freq_money+word_freq_hp+word_freq_george+word_freq_415+word_freq_technology+word_freq_1999+word_freq_project+word_freq_re+word_freq_edu+char_freq_.+char_freq_..4+char_freq_..5+capital_run_length_longest, family=binomial, data=test_stand)
+
+```
+```{r}
+# Confusion matrix
+Probs_train = predict(train_model_sig, type='response')
+Probs_test = predict(test_model_sig, type='response')
+
+Pred_trend_train = ifelse(Probs_train>0.5, 1, 0)
+table(Pred_trend_train, train$classes)
+mean(Pred_trend_train == train$classes)
+
+Pred_trend_test = ifelse(Probs_test>0.5, 1, 0)
+table(Pred_trend_test, test$classes)
+mean(Pred_trend_test == test$classes)
+```
+**Applying logistic regression on all features results in different significance for the variables in the spam data set. 26 features from training set are significant, and 18 of them from testing set are significant. Applying logistic regression on significant features result in a confusion matrix, and we got a 92.37% accuracy on the training set and 70.53% on the testing set.**
+
+
