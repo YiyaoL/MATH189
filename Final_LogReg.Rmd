@@ -12,7 +12,9 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 # Read in the datasets
 test_stand <- read.csv("test_stand.csv")
+test_stand <- subset(test_stand, select = -c(1))
 train_stand <- read.csv("train_stand.csv")
+train_stand <- subset(train_stand, select = -c(1))
 ```
 
 ```{r}
@@ -41,7 +43,7 @@ p_train = as.list(summary(train_model)$coefficients[,4])
 train_view <- data.frame(p_train)
 sig_fea_train = list()
 col_names_train = colnames(train_view)
-for (x in 1:59) {
+for (x in 1:58) {
   if (train_view[,x] < 0.05) {
     sig_fea_train <- append(sig_fea_train, col_names_train[x]);
   }
@@ -50,7 +52,7 @@ p_test = as.list(summary(test_model)$coefficients[,4])
 test_view <- data.frame(p_test)
 sig_fea_test = list()
 col_names_test = colnames(test_view)
-for (x in 1:59) {
+for (x in 1:58) {
   if (test_view[,x] < 0.05) {
     sig_fea_test <- append(sig_fea_test, col_names_test[x]);
   }
@@ -84,7 +86,9 @@ mean(Pred_trend_test != test_stand$classes)
 ```{r}
 # Read in the datasets
 test_log <- read.csv("test_log.csv")
+test_log <- subset(test_log, select = -c(1))
 train_log <- read.csv("train_log.csv")
+train_log <- subset(train_log, select = -c(1))
 ```
 
 ```{r}
@@ -111,7 +115,7 @@ p_train_log = as.list(summary(train_model_log)$coefficients[,4])
 train_view_log <- data.frame(p_train_log)
 sig_fea_train_log = list()
 col_names_train_log = colnames(train_view_log)
-for (x in 1:59) {
+for (x in 1:58) {
   if (train_view_log[,x] < 0.05) {
     sig_fea_train_log <- append(sig_fea_train_log, col_names_train_log[x]);
   }
@@ -120,7 +124,7 @@ p_test_log = as.list(summary(test_model_log)$coefficients[,4])
 test_view_log <- data.frame(p_test_log)
 sig_fea_test_log = list()
 col_names_test_log = colnames(test_view_log)
-for (x in 1:59) {
+for (x in 1:58) {
   if (test_view_log[,x] < 0.05) {
     sig_fea_test_log <- append(sig_fea_test_log, col_names_test_log[x]);
   }
@@ -149,3 +153,76 @@ table(Pred_trend_test_log, test_log$classes)
 mean(Pred_trend_test_log != test_log$classes)
 ```
 **Applying logistic regression on all features results in different significance for the variables in the spam data set. 25 features from training set are significant, and 15 of them from testing set are significant. Applying logistic regression on significant features result in a confusion matrix, and we got a 0.062 error rate on the training set and 0.048 error rate on the testing set. However, the original testing process result in a smaller error rate**
+
+**Logistic Regression Model - Discretized**
+```{r}
+# Read in the datasets
+test_dis <- read.csv("test_dis.csv")
+test_dis <- subset(test_dis, select = -c(1))
+train_dis <- read.csv("train_dis.csv")
+train_dis <- subset(train_dis, select = -c(1))
+```
+
+```{r}
+# Logistic Regression model
+
+#install.packages("dplyr")
+#install.packages("rlist")
+library(dplyr)
+library(rlist)
+train_model_dis <- glm(classes ~., family=binomial, data=train_dis)
+test_model_dis <- glm(classes ~., family=binomial, data=test_dis)
+Probs_dis_train = predict(train_model_dis, type='response')
+Probs_dis_test = predict(test_model_dis, type='response')
+
+Pred_dis_train = ifelse(Probs_dis_train>0.5, 1, 0)
+table(Pred_dis_train, train_dis$classes)
+mean(Pred_dis_train != train_dis$classes)
+
+Pred_dis_test = ifelse(Probs_dis_test>0.5, 1, 0)
+table(Pred_dis_test, test_dis$classes)
+mean(Pred_dis_test != test_dis$classes)
+# find significant features
+p_train_dis = as.list(summary(train_model_dis)$coefficients[,4])
+train_view_dis <- data.frame(p_train_dis)
+sig_fea_train_dis = list()
+col_names_train_dis = colnames(train_view_dis)
+for (x in 1:55) {
+  if (train_view_dis[,x] < 0.05) {
+    sig_fea_train_dis <- append(sig_fea_train_dis, col_names_train_dis[x]);
+  }
+}
+p_test_dis = as.list(summary(test_model_dis)$coefficients[,4])
+test_view_dis <- data.frame(p_test_dis)
+sig_fea_test_dis = list()
+col_names_test_dis = colnames(test_view_dis)
+for (x in 1:55) {
+  if (test_view_dis[,x] < 0.05) {
+    sig_fea_test_dis <- append(sig_fea_test_dis, col_names_test_dis[x]);
+  }
+}
+
+```
+
+```{r}
+# Repeat logistic regresson on significant features
+train_model_sig_dis <- glm(classes ~ word_freq_our+word_freq_remove+word_freq_internet+word_freq_mail+word_freq_receive+word_freq_people+word_freq_report+word_freq_addresses+word_freq_free+word_freq_business+word_freq_email+word_freq_credit+word_freq_your+word_freq_000+word_freq_money+word_freq_hp+word_freq_george+word_freq_650+word_freq_1999+word_freq_meeting+word_freq_original+word_freq_project+word_freq_re+word_freq_edu+word_freq_conference+char_freq_..3+char_freq_..4+char_freq_..5, family=binomial, data=train_dis)
+
+test_model_sig_dis <- glm(classes ~ word_freq_our+word_freq_remove+word_freq_internet+word_freq_free+word_freq_your+word_freq_money+word_freq_hp+word_freq_george+word_freq_meeting+word_freq_project+word_freq_edu+char_freq_..3+char_freq_..4, family=binomial, data=test_dis)
+
+```
+
+```{r}
+# Confusion matrix
+Probs_train_dis = predict(train_model_sig_dis, type='response')
+Probs_test_dis = predict(test_model_sig_dis, type='response')
+
+Pred_trend_train_dis = ifelse(Probs_train_dis >0.5, 1, 0)
+table(Pred_trend_train_dis, train_dis$classes)
+mean(Pred_trend_train_dis != train_dis$classes)
+
+Pred_trend_test_dis = ifelse(Probs_test_dis >0.5, 1, 0)
+table(Pred_trend_test_dis, test_dis$classes)
+mean(Pred_trend_test_dis != test_dis$classes)
+```
+**Applying logistic regression on all features results in different significance for the variables in the spam data set. 28 features from training set are significant, and 13 of them from testing set are significant. Applying logistic regression on significant features result in a confusion matrix, and we got a 0.067 error rate on the training set and 0.07 error rate on the testing set. However, the original testing process result in a slightly smaller error rate**

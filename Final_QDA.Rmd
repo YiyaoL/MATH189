@@ -80,3 +80,46 @@ test_error_log = mean(test_pred_pca_log != test_qda_log$classes)
 cat("Train error rate: ", train_error_log, "\n")
 cat("Test error rate: ", test_error_log)
 ```
+
+**Quadratic Discriminant Analysis - Discretized**
+
+```{r}
+# Read in the datasets
+train_qda_dis<- read.csv("train_dis.csv")
+train_qda_dis <- subset(train_qda_dis, select = -c(1))
+test_qda_dis <- read.csv("test_dis.csv")
+test_qda_dis <- subset(test_qda_dis, select = -c(1))
+```
+
+```{r}
+
+```
+
+```{r}
+# Train QDA
+library("MASS")
+true_val_dis = test_qda_dis$classes
+qda_dis = qda(classes ~., data = train_qda_dis)
+qda_pred_dis = predict(qda_dis, train_qda_dis)
+pred_val_qda_dis = qda_pred_dis$class
+test_error_qda_dis = mean(pred_val_qda_dis != true_val_dis)
+cat("Test error rate of model is: ", test_error_qda_dis)
+```
+**From normal qda process, we get an error rate of 0.509, which is relevantly high**
+```{r}
+# Apply PCA
+pca_train_log <- prcomp(train_qda_log, rank = 10)$x
+pca_train_log <- as.data.frame(pca_train_log)
+pca_test_log = prcomp(test_qda_log, rank = 10)$x
+pca_test_log <- as.data.frame(pca_test_log)
+# QDA with PCA
+qda_model_pca_log = qda(classes ~., data = pca_train_log, method = "mle")
+train_pred_pca_log = predict(qda_model_pca_log, pca_train_log)$class
+train_error_log = mean(train_pred_pca_log != train_qda_log$classes)
+test_pred_pca_log = predict(qda_model_pca_log, pca_test_log)$class
+test_error_log = mean(test_pred_pca_log != test_qda_log$classes)
+cat("Train error rate: ", train_error_log, "\n")
+cat("Test error rate: ", test_error_log)
+```
+
+
