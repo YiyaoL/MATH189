@@ -86,7 +86,8 @@ mean(Pred_trend_test != test_stand$classes)
 ```
 
 
-## 2. (1) Linear Discriminant Analysis Model
+## 2. LDA & QDA
+### (1) Linear Discriminant Analysis Model
 **The LDA model with 57 variables results in a testing error of 0.1. We also try applying PCA before applying LDA, but a rank of 57 results in a testing error of about 0.2. After testing out different ranks, PCA results in a testing error of 0.18.**
 ```{r}
 # read in data
@@ -147,7 +148,7 @@ lda.pca.error = mean(lda.pca.predicted != true) # take mean of number of mismatc
 cat("Test error rate of model is :", lda.pca.error)
 ```
 
-## 2. (2) Quadratic Discriminant Analysis
+### (2) Quadratic Discriminant Analysis
 **From normal QDA process, we get an error rate of 0.509, which is relevantly high. After applying PCA to the standardized data, ___**
 ```{r}
 # Read in the datasets
@@ -187,7 +188,72 @@ cat("Train error rate: ", train_error, "\n")
 cat("Test error rate: ", test_error)
 ```
 
-## 3. Support Vector Machines
+## 3.Support Vector Machines
+```{r}
+# library
+library(e1071)
+library(caret)
+# loading the data
+data.train <- read.table("/Users/christina/Downloads/spam-train (1).txt", sep = ",", quote="", 
+                         fill=TRUE)
+data.test <- read.table("/Users/christina/Downloads/spam-test (1).txt", sep = ",", quote="", 
+                         fill=TRUE)
+# Standardized Features
+data.train[,1:57] <- scale(data.train[,1:57])
+data.test[,1:57] <- scale(data.test[,1:57])
+# Converting response variables to factorial variables
+data.train[,58] <- factor(data.train[,58])
+data.test[,58] <- factor(data.test[,58])
+```
+
+### (1) Linear Model
+```{r}
+svmfit.linear1 <- svm(V58~., data = data.train, kernel = "linear", 
+                      cost = 10, scale=FALSE)
+
+# Check the classifier
+summary(svmfit.linear1)
+# Choose cost C by cross validation
+tune.linear1 <- tune(svm, V58~., data = data.train, kernel = "linear", 
+                     ranges = list(cost=c(0.001, 0.01, 0.1, 1, 10,
+                                          100)))
+
+
+# Check the selection resutls
+summary(tune.linear1)
+# Choose the best model (classifier with optimal C)
+bestmod.linear1 <- tune.linear1$best.model
+# Check the classifier
+summary(bestmod.linear1)
+# Prediction on test set
+ypred.linear1 <- predict(bestmod.linear1, data.test)
+# Check the prediction accuracy
+confusionMatrix(table(ypred.linear1,data.test$V58))
+```
+**After cross-validation the best C is found to be 100. We can see that the accuracy of the linear support vector machine for the first data is 93.16%.**
+
+### (2) Nonlinear SVM
+```{r}
+svmfit.gaussian1 <- svm(V58~., data = data.train, kernel ="radial", 
+                        gamma = 1, cost = 10)
+summary(svmfit.gaussian1)
+
+# Choose cost C and gamma by cross validation
+tune.gaussian1 <- tune(svm, V58~., data = data.train, kernel = "radial", 
+                       ranges = list(cost = c(0.01, 0.1, 0.5, 1),
+                                     gamma=c(0.1, 0.5, 1)))
+# Check the selection resutls
+summary(tune.gaussian1)
+# Choose the best model (classifier with optimal C)
+bestmod.gaussian1 <- tune.gaussian1$best.model
+# Check the classifier
+summary(bestmod.gaussian1)
+# Prediction on test set
+ypred.gaussian1 <- predict(bestmod.gaussian1, data.test)
+# Check the prediction accuracy
+confusionMatrix(table(ypred.gaussian1,data.test$V58))
+```
+After cross-validation the best C is found to be 1. We can see that the accuracy of the nonlinear support vector machine for the first data is 93.48%.
 
 ## 4. Tree-based Models
 **Using the standardized data, two types of tree-based models were tested. Bagging with 100 trees and m = 57 results in testing MSE of 0.043, and random forest with m=8 and 100 trees results in testing MSE of 0.036. **
@@ -202,6 +268,7 @@ test <- subset(test, select = -c(X))
 true = test$classes
 ```
 
+### (1) Bagging
 ```{r}
 # Bagging (Random forests with m=p) and 100 trees
 bag.model = randomForest(classes~., data=train,
@@ -225,4 +292,30 @@ abline (0,1)
 
 # MSE on test set
 cat("Testing MSE: ", mean((bag.predicted-true)^2))
+```
+
+### (2) Random Forest
+```{r}
+# Random forests with m=sqrt(p) and 100 trees. p=57, let m be 8
+RF.model = randomForest(classes~., data=train,
+                           mtry=8,importance=TRUE, ntree=100)
+summary(RF.model)
+```
+
+```{r}
+# Prediction on training set for bagging
+training_res = predict(RF.model, train)
+cat("Training MSE: ", mean((training_res-train$classes)^2))
+```
+
+```{r}
+# Prediction on test set
+RF.predicted = predict(RF.model, test)
+
+# Plot prediction performance
+plot(RF.predicted, true)
+abline(0,1)
+
+# MSE on test set
+cat("Testing MSE: ", mean((RF.predicted-true)^2))
 ```
