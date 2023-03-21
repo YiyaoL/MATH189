@@ -31,7 +31,7 @@ summary(bag.model)
 ```{r}
 # Prediction on training set for bagging
 training_res = predict(bag.model, train)
-print("")
+cat("Training MSE: ", mean((training_res-train$classes)^2))
 ```
 
 
