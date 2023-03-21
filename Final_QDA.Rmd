@@ -96,44 +96,29 @@ test_qda_dis <- subset(test_qda_dis, select = -c(1))
 ```
 
 ```{r}
-x1 <- train_qda_dis[train_qda_dis$word_freq_make == 0,]
-x2 <- train_qda_dis[train_qda_dis$word_freq_address == 0,]
-x3 <- train_qda_dis[train_qda_dis$word_freq_all == 0,]
-x4 <- train_qda_dis[train_qda_dis$word_freq_3d == 0,]
-x5 <- train_qda_dis[train_qda_dis$capital_run_length_longest == 0,]
-qr(x1)$rank
-qr(x2)$rank
-qr(x3)$rank
-qr(x4)$rank
-qr(x5)$rank
-```
-
-```{r}
 # Train QDA
 library("MASS")
 true_val_dis = test_qda_dis$classes
 try(qda(classes ~., data = train_qda_dis))
-qda_dis = qda(classes ~., data = train_qda_dis)
-qda_pred_dis = predict(qda_dis, train_qda_dis)
-pred_val_qda_dis = qda_pred_dis$class
-test_error_qda_dis = mean(pred_val_qda_dis != true_val_dis)
-cat("Test error rate of model is: ", test_error_qda_dis)
 ```
-**From normal qda process, we get an error rate of 0.509, which is relevantly high**
+**When applying normal qda to discretized data, we found that it has rank deficiency in group 0, which means that either this data has zero variance or it is perfectly collinear with another group, thus we cannot process a qda normaly, and we try PCA below.**
 ```{r}
 # Apply PCA
-pca_train_log <- prcomp(train_qda_log, rank = 10)$x
-pca_train_log <- as.data.frame(pca_train_log)
-pca_test_log = prcomp(test_qda_log, rank = 10)$x
-pca_test_log <- as.data.frame(pca_test_log)
+library("MASS")
+pca_train_dis <- prcomp(train_qda_dis, rank = 10)$x
+pca_train_dis <- as.data.frame(pca_train_dis)
+pca_train_dis$classes <- train_qda_dis$classes
+pca_test_dis = prcomp(test_qda_dis, rank = 10)$x
+pca_test_dis <- as.data.frame(pca_test_dis)
+pca_test_dis$classes <- test_qda_dis$classes
 # QDA with PCA
-qda_model_pca_log = qda(classes ~., data = pca_train_log, method = "mle")
-train_pred_pca_log = predict(qda_model_pca_log, pca_train_log)$class
-train_error_log = mean(train_pred_pca_log != train_qda_log$classes)
-test_pred_pca_log = predict(qda_model_pca_log, pca_test_log)$class
-test_error_log = mean(test_pred_pca_log != test_qda_log$classes)
-cat("Train error rate: ", train_error_log, "\n")
-cat("Test error rate: ", test_error_log)
+qda_model_pca_dis = qda(classes ~., data = pca_train_dis, method = "mle")
+train_pred_pca_dis = predict(qda_model_pca_dis, pca_train_dis)$class
+train_error_dis = mean(train_pred_pca_dis != train_qda_dis$classes)
+test_pred_pca_dis = predict(qda_model_pca_dis, pca_test_dis)$class
+test_error_dis = mean(test_pred_pca_dis != test_qda_dis$classes)
+cat("Train error rate: ", train_error_dis, "\n")
+cat("Test error rate: ", test_error_dis)
 ```
 
 
