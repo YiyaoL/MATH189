@@ -1,0 +1,228 @@
+---
+title: "Standardized_full"
+author: "AmyLiu"
+date: "2023-03-21"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Standardized Data
+```{r}
+# Read in the datasets
+test_stand <- read.csv("test_stand.csv")
+test_stand <- subset(test_stand, select = -c(1))
+train_stand <- read.csv("train_stand.csv")
+train_stand <- subset(train_stand, select = -c(1))
+```
+
+## 1. Logistic Regression Model - Standardized
+**Applying logistic regression on all features results in different significance for the variables in the spam data set. 25 features from training set are significant, and 18 of them from testing set are significant. Applying logistic regression on significant features result in a confusion matrix, and we got a 0.076 error rate on the training set and 0.295 error rate on the testing set. However, the previous testing without using significant features result in a smaller and significant error rate. **
+```{r}
+# Logistic Regression model
+
+#install.packages("dplyr")
+#install.packages("rlist")
+library(dplyr)
+library(rlist)
+train_model <- glm(classes ~., family=binomial, data=train_stand)
+test_model <- glm(classes ~., family=binomial, data=test_stand)
+
+# Confusion matrix
+Probs_raw_train = predict(train_model, type='response')
+Probs_raw_test = predict(test_model, type='response')
+
+Pred_raw_train = ifelse(Probs_raw_train>0.5, 1, 0)
+table(Pred_raw_train, train_stand$classes)
+mean(Pred_raw_train != train_stand$classes)
+
+Pred_raw_test = ifelse(Probs_raw_test>0.5, 1, 0)
+table(Pred_raw_test, test_stand$classes)
+mean(Pred_raw_test != test_stand$classes)
+
+# find significant features
+p_train = as.list(summary(train_model)$coefficients[,4])
+train_view <- data.frame(p_train)
+sig_fea_train = list()
+col_names_train = colnames(train_view)
+for (x in 1:58) {
+  if (train_view[,x] < 0.05) {
+    sig_fea_train <- append(sig_fea_train, col_names_train[x]);
+  }
+}
+p_test = as.list(summary(test_model)$coefficients[,4])
+test_view <- data.frame(p_test)
+sig_fea_test = list()
+col_names_test = colnames(test_view)
+for (x in 1:58) {
+  if (test_view[,x] < 0.05) {
+    sig_fea_test <- append(sig_fea_test, col_names_test[x]);
+  }
+}
+```
+
+```{r}
+# Repeat logistic regresson on significant features
+train_model_sig <- glm(classes ~ word_freq_3d+word_freq_our+ word_freq_remove+word_freq_internet+word_freq_order+ word_freq_receive+word_freq_free+word_freq_business+word_freq_you+ word_freq_credit+word_freq_your+word_freq_000+word_freq_hp+ word_freq_george+word_freq_meeting+word_freq_project+word_freq_re+ word_freq_edu+word_freq_table+char_freq_.+char_freq_..3+ char_freq_..4+capital_run_length_average+ capital_run_length_longest+capital_run_length_total, family=binomial, data=train_stand)
+
+test_model_sig <- glm(classes ~ word_freq_our+word_freq_remove+word_freq_free+word_freq_email+word_freq_your+word_freq_money+word_freq_hp+word_freq_george+word_freq_415+word_freq_technology+word_freq_1999+word_freq_project+word_freq_re+word_freq_edu+char_freq_.+char_freq_..4+char_freq_..5+capital_run_length_longest, family=binomial, data=test_stand)
+
+```
+
+```{r}
+# Confusion matrix
+Probs_train_sig = predict(train_model_sig, type='response')
+Probs_test_sig = predict(test_model_sig, type='response')
+
+Pred_trend_train = ifelse(Probs_train_sig>0.5, 1, 0)
+table(Pred_trend_train, train_stand$classes)
+mean(Pred_trend_train != train_stand$classes)
+
+Pred_trend_test = ifelse(Probs_test_sig>0.5, 1, 0)
+table(Pred_trend_test, test_stand$classes)
+mean(Pred_trend_test != test_stand$classes)
+```
+
+
+## 2. (1) Linear Discriminant Analysis Model
+**The LDA model with 57 variables results in a testing error of 0.1. We also try applying PCA before applying LDA, but a rank of 57 results in a testing error of about 0.2. After testing out different ranks, PCA results in a testing error of 0.18.**
+```{r}
+# read in data
+library("MASS")
+train = read.csv("train_stand.csv")
+train <- subset(train, select = -c(X))
+test = read.csv("test_stand.csv")
+test <- subset(test, select = -c(X))
+true = test$classes
+```
+
+```{r}
+# train LDA
+lda.model = lda(classes ~., data = train)
+summary(lda.model)
+```
+
+```{r}
+# training error
+training_res = predict(lda.model, train)$class
+print("Training error: ")
+mean(training_res != train$classes)
+```
+
+```{r}
+# testing error
+lda.predicted = predict(lda.model,test)$class
+lda.error = mean(lda.predicted != true) # take mean of number of mismatching across all labels
+cat("Test error rate of model is :", lda.error)
+```
+
+```{r}
+# Try PCA
+pca.train = prcomp(subset(train, select = -c(classes)), scale = TRUE, rank=12)$x
+pca.train <- as.data.frame(pca.train)
+classes = train$classes
+pca.train$classes = classes # new df with 26 independent vars and 1 dependent var
+
+lda.pca.model =lda(classes ~ ., data = pca.train, method = "mle")
+summary(lda.pca.model)
+```
+
+```{r}
+# training error
+training_res = predict(lda.pca.model, pca.train)$class
+print("Training error: ")
+mean(training_res != train$classes)
+```
+
+```{r}
+# prepare test data - PCA everything except classes
+pca.test = prcomp(subset(test, select = -c(classes)), scale = TRUE, rank=12)$x
+pca.test <- as.data.frame(pca.test)
+pca.test$classes = true # new df with 26 independent vars and 1 dependent var
+
+lda.pca.predicted = predict(lda.pca.model, pca.test)$class
+lda.pca.error = mean(lda.pca.predicted != true) # take mean of number of mismatching across all labels
+cat("Test error rate of model is :", lda.pca.error)
+```
+
+## 2. (2) Quadratic Discriminant Analysis
+**From normal QDA process, we get an error rate of 0.509, which is relevantly high. After applying PCA to the standardized data, ___**
+```{r}
+# Read in the datasets
+train_qda <- read.csv("train_stand.csv")
+train_qda <- subset(train_qda, select = -c(1))
+test_qda <- read.csv("test_stand.csv")
+test_qda <- subset(test_qda, select = -c(1))
+```
+
+```{r}
+# Train QDA
+library("MASS")
+true_val = test_qda$classes
+qda_stand = qda(classes ~., data = train_qda)
+qda_pred = predict(qda_stand, train_qda)
+pred_val_qda = qda_pred$class
+test_error_qda = mean(pred_val_qda != true_val)
+cat("Test error rate of model is: ", test_error_qda)
+```
+
+```{r}
+# Apply PCA
+pca_train <- prcomp(train_qda, rank = 6)$x
+pca_train <- as.data.frame(pca_train)
+pca_train$classes <- train_qda$classes
+pca_test = prcomp(test_qda, rank = 6)$x
+pca_test <- as.data.frame(pca_test)
+pca_test$classes <- test_qda$classes
+
+# QDA with PCA
+qda_model_pca = qda(classes ~., data = pca_train, method = "mle")
+train_pred_pca = predict(qda_model_pca, pca_train)$class
+train_error = mean(train_pred_pca != train_qda$classes)
+test_pred_pca = predict(qda_model_pca, pca_test)$class
+test_error = mean(test_pred_pca != test_qda$classes)
+cat("Train error rate: ", train_error, "\n")
+cat("Test error rate: ", test_error)
+```
+
+## 3. Support Vector Machines
+
+## 4. Tree-based Models
+**Using the standardized data, two types of tree-based models were tested. Bagging with 100 trees and m = 57 results in testing MSE of 0.043, and random forest with m=8 and 100 trees results in testing MSE of 0.036. **
+
+```{r}
+# read in data
+library(randomForest)
+train = read.csv("train_stand.csv")
+train <- subset(train, select = -c(X))
+test = read.csv("test_stand.csv")
+test <- subset(test, select = -c(X))
+true = test$classes
+```
+
+```{r}
+# Bagging (Random forests with m=p) and 100 trees
+bag.model = randomForest(classes~., data=train,
+                           mtry=(ncol(train)-1),importance=TRUE, ntree=100)
+summary(bag.model)
+```
+
+```{r}
+# Prediction on training set for bagging
+training_res = predict(bag.model, train)
+cat("Training MSE: ", mean((training_res-train$classes)^2))
+```
+
+```{r}
+# Prediction on test set for bagging
+bag.predicted = predict(bag.model, test)
+
+# Plot prediction performance
+plot(bag.predicted, true)
+abline (0,1)
+
+# MSE on test set
+cat("Testing MSE: ", mean((bag.predicted-true)^2))
+```
