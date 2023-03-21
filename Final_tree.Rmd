@@ -29,6 +29,13 @@ summary(bag.model)
 ```
 
 ```{r}
+# Prediction on training set for bagging
+training_res = predict(bag.model, train)
+print("")
+```
+
+
+```{r}
 # Prediction on test set for bagging
 bag.predicted = predict(bag.model, test)
 
