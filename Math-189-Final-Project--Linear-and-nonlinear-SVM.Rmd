@@ -1,0 +1,212 @@
+---
+title: 'math 189 Final Project: Linear and nonlinear SVM'
+output: html_document
+date: "2023-03-19"
+---
+
+# **(d) linear and nonlinear support vector machine**
+## **The first version of the data**
+```{r warning=FALSE}
+# library
+library(e1071)
+library(caret)
+# loading the data
+data.train <- read.table("/Users/christina/Downloads/spam-train (1).txt", sep = ",", quote="", 
+                         fill=TRUE)
+data.test <- read.table("/Users/christina/Downloads/spam-test (1).txt", sep = ",", quote="", 
+                         fill=TRUE)
+# Standardized Features
+data.train[,1:57] <- scale(data.train[,1:57])
+data.test[,1:57] <- scale(data.test[,1:57])
+# Converting response variables to factorial variables
+data.train[,58] <- factor(data.train[,58])
+data.test[,58] <- factor(data.test[,58])
+```
+Completed the standardization of data. Make the mean of the data 0 and the standard deviation unit standard deviation.
+
+### **linear support vector machine**
+```{r warning=FALSE}
+svmfit.linear1 <- svm(V58~., data = data.train, kernel = "linear", 
+                      cost = 10, scale=FALSE)
+
+# Check the classifier
+summary(svmfit.linear1)
+# Choose cost C by cross validation
+tune.linear1 <- tune(svm, V58~., data = data.train, kernel = "linear", 
+                     ranges = list(cost=c(0.001, 0.01, 0.1, 1, 10,
+                                          100)))
+
+
+# Check the selection resutls
+summary(tune.linear1)
+# Choose the best model (classifier with optimal C)
+bestmod.linear1 <- tune.linear1$best.model
+# Check the classifier
+summary(bestmod.linear1)
+# Prediction on test set
+ypred.linear1 <- predict(bestmod.linear1, data.test)
+# Check the prediction accuracy
+confusionMatrix(table(ypred.linear1,data.test$V58))
+```
+After cross-validation the best C is found to be 100. We can see that the accuracy of the linear support vector machine for the first data is 93.16%.
+
+### **nonlinear support vector machine**
+```{r warning=FALSE}
+svmfit.gaussian1 <- svm(V58~., data = data.train, kernel ="radial", 
+                        gamma = 1, cost = 10)
+summary(svmfit.gaussian1)
+
+# Choose cost C and gamma by cross validation
+tune.gaussian1 <- tune(svm, V58~., data = data.train, kernel = "radial", 
+                       ranges = list(cost = c(0.01, 0.1, 0.5, 1),
+                                     gamma=c(0.1, 0.5, 1)))
+# Check the selection resutls
+summary(tune.gaussian1)
+# Choose the best model (classifier with optimal C)
+bestmod.gaussian1 <- tune.gaussian1$best.model
+# Check the classifier
+summary(bestmod.gaussian1)
+# Prediction on test set
+ypred.gaussian1 <- predict(bestmod.gaussian1, data.test)
+# Check the prediction accuracy
+confusionMatrix(table(ypred.gaussian1,data.test$V58))
+```
+After cross-validation the best C is found to be 1. We can see that the accuracy of the nonlinear support vector machine for the first data is 93.48%.
+
+## **The second version of the data**
+```{r warning=FALSE}
+# loading the data
+data.train <- read.table("/Users/christina/Downloads/spam-train (1).txt", sep = ",", quote="", 
+                         fill=TRUE)
+data.test <- read.table("/Users/christina/Downloads/spam-test (1).txt", sep = ",", quote="", 
+                         fill=TRUE)
+# Standardized Features
+data.train[,1:57] <- log(data.train[,1:57] + 1)
+data.test[,1:57] <- log(data.test[,1:57] + 1)
+# Converting response variables to factorial variables
+data.train[,58] <- factor(data.train[,58])
+data.test[,58] <- factor(data.test[,58])
+```
+The $log(x_{ij} + 1)$ transformation of the data is completed.
+
+### **linear support vector machine**
+```{r warning=FALSE}
+svmfit.linear2 <- svm(V58~., data = data.train, kernel = "linear", 
+                      cost = 10, scale=FALSE)
+
+# Check the classifier
+summary(svmfit.linear2)
+
+# Choose cost C by cross validation
+tune.linear2 <- tune(svm, V58~., data = data.train, kernel = "linear", 
+                     ranges = list(cost=c(0.001, 0.01, 0.1, 1, 10,
+                                          100)))
+
+
+# Check the selection resutls
+summary(tune.linear2)
+# Choose the best model (classifier with optimal C)
+bestmod.linear2 <- tune.linear2$best.model
+# Check the classifier
+summary(bestmod.linear2)
+# Prediction on test set
+ypred.linear2 <- predict(bestmod.linear2, data.test)
+# Check the prediction accuracy
+confusionMatrix(table(ypred.linear2,data.test$V58))
+```
+After cross-validation the best C is found to be 0.01. We can see that the accuracy of the linear support vector machine for the second data is 94.20%.
+
+### **nonlinear support vector machine**
+```{r warning=FALSE}
+svmfit.gaussian2 <- svm(V58~., data = data.train, kernel ="radial", 
+                        gamma = 1, cost = 10)
+summary(svmfit.gaussian2)
+
+# Choose cost C and gamma by cross validation
+tune.gaussian2 <- tune(svm, V58~., data = data.train, kernel = "radial", 
+                       ranges = list(cost = c(0.01, 0.1, 0.5, 1),
+                                     gamma=c(0.1, 0.5, 1)))
+# Check the selection resutls
+summary(tune.gaussian2)
+# Choose the best model (classifier with optimal C)
+bestmod.gaussian2 <- tune.gaussian2$best.model
+# Check the classifier
+summary(bestmod.gaussian2)
+# Prediction on test set
+ypred.gaussian2 <- predict(bestmod.gaussian2, data.test)
+# Check the prediction accuracy
+confusionMatrix(table(ypred.gaussian2,data.test$V58))
+```
+After cross-validation the best C is found to be 1. We can see that the accuracy of the nonlinear support vector machine for the second data is 94.52%.
+
+
+## **The third version of the data**
+```{r warning=FALSE}
+# loading the data
+data.train <- read.table("/Users/christina/Downloads/spam-train (1).txt", sep = ",", quote="", 
+                         fill=TRUE)
+data.test <- read.table("/Users/christina/Downloads/spam-test (1).txt", sep = ",", quote="", 
+                         fill=TRUE)
+# Standardized Features
+for (i in 1:57) {
+data.train[data.train[,i] > 0, i] <- 1
+data.train[data.train[,i] <= 0, i] <- 0
+}
+for (i in 1:57) {
+data.test[data.test[,i] > 0, i] <- 1
+data.test[data.test[,i] <= 0, i] <- 0
+}
+# Converting response variables to factorial variables
+data.train[,58] <- factor(data.train[,58])
+data.test[,58] <- factor(data.test[,58])
+```
+The discretization of the data is completed.
+
+### **linear support vector machine**
+```{r warning=FALSE}
+svmfit.linear3 <- svm(V58~., data = data.train, kernel = "linear", 
+                      cost = 10, scale=FALSE)
+
+# Check the classifier
+summary(svmfit.linear3)
+# Choose cost C by cross validation
+tune.linear3 <- tune(svm, V58~., data = data.train, kernel = "linear", 
+                     ranges = list(cost=c(0.001, 0.01, 0.1, 1, 10,
+                                          100)))
+
+
+# Check the selection resutls
+summary(tune.linear3)
+# Choose the best model (classifier with optimal C)
+bestmod.linear3 <- tune.linear3$best.model
+# Check the classifier
+summary(bestmod.linear3)
+# Prediction on test set
+ypred.linear3 <- predict(bestmod.linear3, data.test)
+# Check the prediction accuracy
+confusionMatrix(table(ypred.linear3,data.test$V58))
+```
+After cross-validation the best C is found to be 10. We can see that the accuracy of the linear support vector machine for the third data is 92.57%.
+
+### **nonlinear support vector machine**
+```{r warning=FALSE}
+svmfit.gaussian3 <- svm(V58~., data = data.train, kernel ="radial", 
+                        gamma = 1, cost = 10)
+summary(svmfit.gaussian3)
+
+# Choose cost C and gamma by cross validation
+tune.gaussian3 <- tune(svm, V58~., data = data.train, kernel = "radial", 
+                       ranges = list(cost = c(0.01, 0.1, 0.5, 1),
+                                     gamma=c(0.1, 0.5, 1)))
+# Check the selection resutls
+summary(tune.gaussian3)
+# Choose the best model (classifier with optimal C)
+bestmod.gaussian3 <- tune.gaussian3$best.model
+# Check the classifier
+summary(bestmod.gaussian3)
+# Prediction on test set
+ypred.gaussian3 <- predict(bestmod.gaussian3, data.test)
+# Check the prediction accuracy
+confusionMatrix(table(ypred.gaussian3,data.test$V58))
+```
+After cross-validation the best C is found to be 1. We can see that the accuracy of the nonlinear support vector machine for the third data is 95.24%.
