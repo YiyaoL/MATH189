@@ -12,10 +12,10 @@ knitr::opts_chunk$set(echo = TRUE)
 # Standardized Data
 ```{r}
 # Read in the datasets
-test_stand <- read.csv("test_stand.csv")
-test_stand <- subset(test_stand, select = -c(1))
-train_stand <- read.csv("train_stand.csv")
-train_stand <- subset(train_stand, select = -c(1))
+test <- read.csv("test_stand.csv")
+test <- subset(test, select = -c(1))
+train <- read.csv("train_stand.csv")
+train <- subset(train, select = -c(1))
 ```
 
 ## 1. Logistic Regression Model - Standardized
@@ -27,20 +27,20 @@ train_stand <- subset(train_stand, select = -c(1))
 #install.packages("rlist")
 library(dplyr)
 library(rlist)
-train_model <- glm(classes ~., family=binomial, data=train_stand)
-test_model <- glm(classes ~., family=binomial, data=test_stand)
+train_model <- glm(classes ~., family=binomial, data=train)
+test_model <- glm(classes ~., family=binomial, data=test)
 
 # Confusion matrix
 Probs_raw_train = predict(train_model, type='response')
 Probs_raw_test = predict(test_model, type='response')
 
 Pred_raw_train = ifelse(Probs_raw_train>0.5, 1, 0)
-table(Pred_raw_train, train_stand$classes)
-mean(Pred_raw_train != train_stand$classes)
+table(Pred_raw_train, train$classes)
+mean(Pred_raw_train != train$classes)
 
 Pred_raw_test = ifelse(Probs_raw_test>0.5, 1, 0)
-table(Pred_raw_test, test_stand$classes)
-mean(Pred_raw_test != test_stand$classes)
+table(Pred_raw_test, test$classes)
+mean(Pred_raw_test != test$classes)
 
 # find significant features
 p_train = as.list(summary(train_model)$coefficients[,4])
@@ -65,9 +65,9 @@ for (x in 1:58) {
 
 ```{r}
 # Repeat logistic regresson on significant features
-train_model_sig <- glm(classes ~ word_freq_3d+word_freq_our+ word_freq_remove+word_freq_internet+word_freq_order+ word_freq_receive+word_freq_free+word_freq_business+word_freq_you+ word_freq_credit+word_freq_your+word_freq_000+word_freq_hp+ word_freq_george+word_freq_meeting+word_freq_project+word_freq_re+ word_freq_edu+word_freq_table+char_freq_.+char_freq_..3+ char_freq_..4+capital_run_length_average+ capital_run_length_longest+capital_run_length_total, family=binomial, data=train_stand)
+train_model_sig <- glm(classes ~ word_freq_3d+word_freq_our+ word_freq_remove+word_freq_internet+word_freq_order+ word_freq_receive+word_freq_free+word_freq_business+word_freq_you+ word_freq_credit+word_freq_your+word_freq_000+word_freq_hp+ word_freq_george+word_freq_meeting+word_freq_project+word_freq_re+ word_freq_edu+word_freq_table+char_freq_.+char_freq_..3+ char_freq_..4+capital_run_length_average+ capital_run_length_longest+capital_run_length_total, family=binomial, data=train)
 
-test_model_sig <- glm(classes ~ word_freq_our+word_freq_remove+word_freq_free+word_freq_email+word_freq_your+word_freq_money+word_freq_hp+word_freq_george+word_freq_415+word_freq_technology+word_freq_1999+word_freq_project+word_freq_re+word_freq_edu+char_freq_.+char_freq_..4+char_freq_..5+capital_run_length_longest, family=binomial, data=test_stand)
+test_model_sig <- glm(classes ~ word_freq_our+word_freq_remove+word_freq_free+word_freq_email+word_freq_your+word_freq_money+word_freq_hp+word_freq_george+word_freq_415+word_freq_technology+word_freq_1999+word_freq_project+word_freq_re+word_freq_edu+char_freq_.+char_freq_..4+char_freq_..5+capital_run_length_longest, family=binomial, data=test)
 
 ```
 
@@ -77,12 +77,12 @@ Probs_train_sig = predict(train_model_sig, type='response')
 Probs_test_sig = predict(test_model_sig, type='response')
 
 Pred_trend_train = ifelse(Probs_train_sig>0.5, 1, 0)
-table(Pred_trend_train, train_stand$classes)
-mean(Pred_trend_train != train_stand$classes)
+table(Pred_trend_train, train$classes)
+mean(Pred_trend_train != train$classes)
 
 Pred_trend_test = ifelse(Probs_test_sig>0.5, 1, 0)
-table(Pred_trend_test, test_stand$classes)
-mean(Pred_trend_test != test_stand$classes)
+table(Pred_trend_test, test$classes)
+mean(Pred_trend_test != test$classes)
 ```
 
 
@@ -92,10 +92,6 @@ mean(Pred_trend_test != test_stand$classes)
 ```{r}
 # read in data
 library("MASS")
-train = read.csv("train_stand.csv")
-train <- subset(train, select = -c(X))
-test = read.csv("test_stand.csv")
-test <- subset(test, select = -c(X))
 true = test$classes
 ```
 
@@ -150,40 +146,32 @@ cat("Test error rate of model is :", lda.pca.error)
 
 ### (2) Quadratic Discriminant Analysis
 **From normal QDA process, we get an error rate of 0.509, which is relevantly high. After applying PCA to the standardized data, ___**
-```{r}
-# Read in the datasets
-train_qda <- read.csv("train_stand.csv")
-train_qda <- subset(train_qda, select = -c(1))
-test_qda <- read.csv("test_stand.csv")
-test_qda <- subset(test_qda, select = -c(1))
-```
 
 ```{r}
 # Train QDA
 library("MASS")
-true_val = test_qda$classes
-qda_stand = qda(classes ~., data = train_qda)
-qda_pred = predict(qda_stand, train_qda)
+qda_stand = qda(classes ~., data = train)
+qda_pred = predict(qda_stand, train)
 pred_val_qda = qda_pred$class
-test_error_qda = mean(pred_val_qda != true_val)
+test_error_qda = mean(pred_val_qda != true)
 cat("Test error rate of model is: ", test_error_qda)
 ```
 
 ```{r}
 # Apply PCA
-pca_train <- prcomp(train_qda, rank = 6)$x
+pca_train <- prcomp(train, rank = 6)$x
 pca_train <- as.data.frame(pca_train)
-pca_train$classes <- train_qda$classes
-pca_test = prcomp(test_qda, rank = 6)$x
+pca_train$classes <- train$classes
+pca_test = prcomp(test, rank = 6)$x
 pca_test <- as.data.frame(pca_test)
-pca_test$classes <- test_qda$classes
+pca_test$classes <- test$classes
 
 # QDA with PCA
 qda_model_pca = qda(classes ~., data = pca_train, method = "mle")
 train_pred_pca = predict(qda_model_pca, pca_train)$class
-train_error = mean(train_pred_pca != train_qda$classes)
+train_error = mean(train_pred_pca != train$classes)
 test_pred_pca = predict(qda_model_pca, pca_test)$class
-test_error = mean(test_pred_pca != test_qda$classes)
+test_error = mean(test_pred_pca != test$classes)
 cat("Train error rate: ", train_error, "\n")
 cat("Test error rate: ", test_error)
 ```
@@ -193,28 +181,18 @@ cat("Test error rate: ", test_error)
 # library
 library(e1071)
 library(caret)
-# loading the data
-data.train <- read.table("/Users/christina/Downloads/spam-train (1).txt", sep = ",", quote="", 
-                         fill=TRUE)
-data.test <- read.table("/Users/christina/Downloads/spam-test (1).txt", sep = ",", quote="", 
-                         fill=TRUE)
-# Standardized Features
-data.train[,1:57] <- scale(data.train[,1:57])
-data.test[,1:57] <- scale(data.test[,1:57])
-# Converting response variables to factorial variables
-data.train[,58] <- factor(data.train[,58])
-data.test[,58] <- factor(data.test[,58])
+
 ```
 
 ### (1) Linear Model
 ```{r}
-svmfit.linear1 <- svm(V58~., data = data.train, kernel = "linear", 
+svmfit.linear1 <- svm(classes~., data = train, kernel = "linear", 
                       cost = 10, scale=FALSE)
 
 # Check the classifier
 summary(svmfit.linear1)
 # Choose cost C by cross validation
-tune.linear1 <- tune(svm, V58~., data = data.train, kernel = "linear", 
+tune.linear1 <- tune(svm, classes~., data = train, kernel = "linear", 
                      ranges = list(cost=c(0.001, 0.01, 0.1, 1, 10,
                                           100)))
 
@@ -226,20 +204,21 @@ bestmod.linear1 <- tune.linear1$best.model
 # Check the classifier
 summary(bestmod.linear1)
 # Prediction on test set
-ypred.linear1 <- predict(bestmod.linear1, data.test)
+ypred.linear1 <- predict(bestmod.linear1, test)
 # Check the prediction accuracy
-confusionMatrix(table(ypred.linear1,data.test$V58))
+confusionMatrix(table(ypred.linear1, test$classes))
+
 ```
 **After cross-validation the best C is found to be 100. We can see that the accuracy of the linear support vector machine for the first data is 93.16%.**
 
 ### (2) Nonlinear SVM
 ```{r}
-svmfit.gaussian1 <- svm(V58~., data = data.train, kernel ="radial", 
+svmfit.gaussian1 <- svm(classes~., data = train, kernel ="radial", 
                         gamma = 1, cost = 10)
 summary(svmfit.gaussian1)
 
 # Choose cost C and gamma by cross validation
-tune.gaussian1 <- tune(svm, V58~., data = data.train, kernel = "radial", 
+tune.gaussian1 <- tune(svm, classes~., data = train, kernel = "radial", 
                        ranges = list(cost = c(0.01, 0.1, 0.5, 1),
                                      gamma=c(0.1, 0.5, 1)))
 # Check the selection resutls
@@ -249,9 +228,9 @@ bestmod.gaussian1 <- tune.gaussian1$best.model
 # Check the classifier
 summary(bestmod.gaussian1)
 # Prediction on test set
-ypred.gaussian1 <- predict(bestmod.gaussian1, data.test)
+ypred.gaussian1 <- predict(bestmod.gaussian1, test)
 # Check the prediction accuracy
-confusionMatrix(table(ypred.gaussian1,data.test$V58))
+confusionMatrix(table(ypred.gaussian1, test$classes))
 ```
 After cross-validation the best C is found to be 1. We can see that the accuracy of the nonlinear support vector machine for the first data is 93.48%.
 
@@ -261,11 +240,6 @@ After cross-validation the best C is found to be 1. We can see that the accuracy
 ```{r}
 # read in data
 library(randomForest)
-train = read.csv("train_stand.csv")
-train <- subset(train, select = -c(X))
-test = read.csv("test_stand.csv")
-test <- subset(test, select = -c(X))
-true = test$classes
 ```
 
 ### (1) Bagging
