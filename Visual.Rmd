@@ -1,0 +1,18 @@
+---
+title: "full"
+author: "AmyLiu"
+date: "2023-03-21"
+output: pdf_document
+---
+
+```{r}
+# correlation
+# cor(train)
+
+# boxplot 
+for (i in 1:57) {
+  boxplot(train[,i] ~ train$classes, xlab = "classes", ylab = names(train)[i])
+}
+
+```
+
