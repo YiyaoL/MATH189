@@ -253,7 +253,8 @@ train <- subset(train, select = -c(1))
 ```
 
 ## 1. Logistic Regression Model - Log transformed
-**Applying logistic regression on all features results in different significance for the variables in the spam data set. 25 features from training set are significant, and 15 of them from testing set are significant. Applying logistic regression on significant features result in a confusion matrix, and we got a ___ error rate on the training set and ____ error rate on the testing set. However, the original testing process result in a smaller error rate.**
+**Logistic Regression has a training error of 0.0577, a testing error of 0.0404**
+**Applying logistic regression on all features results in different significance for the variables in the spam data set. 25 features from training set are significant, and 15 of them from testing set are significant. Applying logistic regression on significant features result in a confusion matrix, and we got a 0.062 error rate on the training set and 0.048 error rate on the testing set. However, the original testing process result in a smaller error rate.**
 ```{r}
 # Logistic Regression model
 train_model <- glm(classes ~., family=binomial, data=train)
