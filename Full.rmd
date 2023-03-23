@@ -19,6 +19,7 @@ train <- subset(train, select = -c(1))
 ```
 
 ## 1. Logistic Regression Model - Standardized
+**Logistic regression has training error of 0.072, a testing error of 0.052.**
 **Applying logistic regression on all features results in different significance for the variables in the spam data set. 25 features from training set are significant, and 18 of them from testing set are significant. Applying logistic regression on significant features result in a confusion matrix, and we got a 0.076 error rate on the training set and 0.295 error rate on the testing set. However, the previous testing without using significant features result in a smaller and significant error rate. **
 ```{r}
 # Logistic Regression model
@@ -145,7 +146,7 @@ cat("Test error rate of model is :", lda.pca.error)
 ```
 
 ### (2) Quadratic Discriminant Analysis
-**From normal QDA process, we get an error rate of 0.509, which is relevantly high. After applying PCA to the standardized data, ___**
+**From normal QDA process, we get an error rate of 0.509, which is relevantly high. After applying PCA to the standardized data, the testing error reduced to be 0.154**
 
 ```{r}
 # Train QDA
@@ -177,62 +178,6 @@ cat("Train error rate: ", train_error, "\n")
 cat("Test error rate: ", test_error)
 ```
 
-## 3.Support Vector Machines
-```{r}
-# library
-library(e1071)
-library(caret)
-```
-
-### (1) Linear Model
-```{r}
-svmfit.linear1 <- svm(classes~., data = train, kernel = "linear", 
-                      cost = 10, scale=FALSE)
-
-# Check the classifier
-summary(svmfit.linear1)
-# Choose cost C by cross validation
-tune.linear1 <- tune(svm, classes~., data = train, kernel = "linear", 
-                     ranges = list(cost=c(0.001, 0.01, 0.1, 1, 10,
-                                          100)))
-
-
-# Check the selection resutls
-summary(tune.linear1)
-# Choose the best model (classifier with optimal C)
-bestmod.linear1 <- tune.linear1$best.model
-# Check the classifier
-summary(bestmod.linear1)
-# Prediction on test set
-ypred.linear1 <- predict(bestmod.linear1, test)
-# Check the prediction accuracy
-confusionMatrix(table(ypred.linear1, test$classes))
-
-```
-**After cross-validation the best C is found to be 100. We can see that the accuracy of the linear support vector machine for the first data is 93.16%.**
-
-### (2) Nonlinear SVM
-```{r}
-svmfit.gaussian1 <- svm(classes~., data = train, kernel ="radial", 
-                        gamma = 1, cost = 10)
-summary(svmfit.gaussian1)
-
-# Choose cost C and gamma by cross validation
-tune.gaussian1 <- tune(svm, classes~., data = train, kernel = "radial", 
-                       ranges = list(cost = c(0.01, 0.1, 0.5, 1),
-                                     gamma=c(0.1, 0.5, 1)))
-# Check the selection resutls
-summary(tune.gaussian1)
-# Choose the best model (classifier with optimal C)
-bestmod.gaussian1 <- tune.gaussian1$best.model
-# Check the classifier
-summary(bestmod.gaussian1)
-# Prediction on test set
-ypred.gaussian1 <- predict(bestmod.gaussian1, test)
-# Check the prediction accuracy
-confusionMatrix(table(ypred.gaussian1, test$classes))
-```
-After cross-validation the best C is found to be 1. We can see that the accuracy of the nonlinear support vector machine for the first data is 93.48%.
 
 ## 4. Tree-based Models
 **Using the standardized data, two types of tree-based models were tested. Bagging with 100 trees and m = 57 results in testing MSE of 0.043, and random forest with m=8 and 100 trees results in testing MSE of 0.036. **
@@ -295,22 +240,7 @@ cat("Testing MSE: ", mean((RF.predicted-true)^2))
 ```
 
 
-
-
-
-
-
-
-
----------
-
-
-
-
-
-
-
-
+-------------------------
 
 # Log transformed Data
 
@@ -364,16 +294,16 @@ for (x in 1:58) {
 
 ```{r}
 # Repeat logistic regresson on significant features
-train_model_sig <- glm(classes ~ word_freq_3d+word_freq_our+ word_freq_remove+word_freq_internet+word_freq_order+ word_freq_receive+word_freq_free+word_freq_business+word_freq_you+ word_freq_credit+word_freq_your+word_freq_000+word_freq_hp+ word_freq_george+word_freq_meeting+word_freq_project+word_freq_re+ word_freq_edu+word_freq_table+char_freq_.+char_freq_..3+ char_freq_..4+capital_run_length_average+ capital_run_length_longest+capital_run_length_total, family=binomial, data=train)
+train_model_sig_log <- glm(classes ~ word_freq_our+word_freq_remove+word_freq_internet+word_freq_receive+word_freq_people+word_freq_free+word_freq_business+word_freq_credit+word_freq_your+word_freq_000+word_freq_money+word_freq_hp+word_freq_george+word_freq_650+word_freq_data+word_freq_85+word_freq_1999+word_freq_meeting+word_freq_original+word_freq_re+word_freq_edu+char_freq_.+char_freq_..3+char_freq_..4+capital_run_length_total, family=binomial, data=train)
 
-test_model_sig <- glm(classes ~ word_freq_our+word_freq_remove+word_freq_free+word_freq_email+word_freq_your+word_freq_money+word_freq_hp+word_freq_george+word_freq_415+word_freq_technology+word_freq_1999+word_freq_project+word_freq_re+word_freq_edu+char_freq_.+char_freq_..4+char_freq_..5+capital_run_length_longest, family=binomial, data=test)
+test_model_sig_log <- glm(classes ~ word_freq_our+word_freq_remove+word_freq_internet+word_freq_free+word_freq_money+word_freq_hp+word_freq_george+word_freq_415+word_freq_meeting+word_freq_project+word_freq_edu+char_freq_.+char_freq_..3+char_freq_..4+capital_run_length_total, family=binomial, data=test)
 
 ```
 
 ```{r}
 # Confusion matrix
-Probs_train_sig = predict(train_model_sig, type='response')
-Probs_test_sig = predict(test_model_sig, type='response')
+Probs_train_sig = predict(train_model_sig_log, type='response')
+Probs_test_sig = predict(test_model_sig_log, type='response')
 
 Pred_trend_train = ifelse(Probs_train_sig>0.5, 1, 0)
 table(Pred_trend_train, train$classes)
@@ -453,15 +383,15 @@ qda_stand = qda(classes ~., data = train)
 qda_pred = predict(qda_stand, train)
 pred_val_qda = qda_pred$class
 test_error_qda = mean(pred_val_qda != true)
-cat("Test error rate of model is: ", test_error_qda)
+cat("\nTest error rate of model is: ", test_error_qda)
 ```
 
 ```{r}
 # Apply PCA
-pca_train <- prcomp(train, rank = 6)$x
+pca_train <- prcomp(train, rank = 14)$x
 pca_train <- as.data.frame(pca_train)
 pca_train$classes <- train$classes
-pca_test = prcomp(test, rank = 6)$x
+pca_test = prcomp(test, rank = 14)$x
 pca_test <- as.data.frame(pca_test)
 pca_test$classes <- test$classes
 
@@ -475,57 +405,7 @@ cat("Train error rate: ", train_error, "\n")
 cat("Test error rate: ", test_error)
 ```
 
-## 3.Support Vector Machines
-### (1) Linear Model
-**After cross-validation the best C is found to be 0.01. We can see that the accuracy of the linear support vector machine for the second data is 94.20%. The testing error rate is _____**
-```{r}
-svmfit.linear1 <- svm(classes~., data = train, kernel = "linear", 
-                      cost = 10, scale=FALSE)
 
-# Check the classifier
-summary(svmfit.linear1)
-# Choose cost C by cross validation
-tune.linear1 <- tune(svm, classes~., data = train, kernel = "linear", 
-                     ranges = list(cost=c(0.001, 0.01, 0.1, 1, 10,
-                                          100)))
-
-
-# Check the selection resutls
-summary(tune.linear1)
-# Choose the best model (classifier with optimal C)
-bestmod.linear1 <- tune.linear1$best.model
-# Check the classifier
-summary(bestmod.linear1)
-# Prediction on test set
-ypred.linear1 <- predict(bestmod.linear1, test)
-# Check the prediction accuracy
-confusionMatrix(table(ypred.linear1, test$classes))
-
-```
-
-
-### (2) Nonlinear SVM
-**After cross-validation the best C is found to be 1. We can see that the accuracy of the nonlinear support vector machine for the second data is 94.52%. The testing MSE is ___**
-```{r}
-svmfit.gaussian1 <- svm(classes~., data = train, kernel ="radial", 
-                        gamma = 1, cost = 10)
-summary(svmfit.gaussian1)
-
-# Choose cost C and gamma by cross validation
-tune.gaussian1 <- tune(svm, classes~., data = train, kernel = "radial", 
-                       ranges = list(cost = c(0.01, 0.1, 0.5, 1),
-                                     gamma=c(0.1, 0.5, 1)))
-# Check the selection resutls
-summary(tune.gaussian1)
-# Choose the best model (classifier with optimal C)
-bestmod.gaussian1 <- tune.gaussian1$best.model
-# Check the classifier
-summary(bestmod.gaussian1)
-# Prediction on test set
-ypred.gaussian1 <- predict(bestmod.gaussian1, test)
-# Check the prediction accuracy
-confusionMatrix(table(ypred.gaussian1, test$classes))
-```
 
 ## 4. Tree-based Models
 **Using the log transformed data, two types of tree-based models were tested. Bagging with 100 trees and m = 57 results in testing MSE of 0.03030597, and random forest with m=8 and 100 trees results in testing MSE of 0.02653687. **
@@ -582,20 +462,7 @@ abline(0,1)
 cat("Testing MSE: ", mean((RF.predicted-true)^2))
 ```
 
-
-
-
-
-
-
-
 -----------------------
-
-
-
-
-
-
 # Discretized Data
 ```{r}
 # Read in the datasets
@@ -647,16 +514,16 @@ for (x in 1:55) {
 
 ```{r}
 # Repeat logistic regresson on significant features
-train_model_sig <- glm(classes ~ word_freq_3d+word_freq_our+ word_freq_remove+word_freq_internet+word_freq_order+ word_freq_receive+word_freq_free+word_freq_business+word_freq_you+ word_freq_credit+word_freq_your+word_freq_000+word_freq_hp+ word_freq_george+word_freq_meeting+word_freq_project+word_freq_re+ word_freq_edu+word_freq_table+char_freq_.+char_freq_..3+ char_freq_..4+capital_run_length_average+ capital_run_length_longest+capital_run_length_total, family=binomial, data=train)
+train_model_sig_dis <- glm(classes ~ word_freq_our+word_freq_remove+word_freq_internet+word_freq_mail+word_freq_receive+word_freq_people+word_freq_report+word_freq_addresses+word_freq_free+word_freq_business+word_freq_email+word_freq_credit+word_freq_your+word_freq_000+word_freq_money+word_freq_hp+word_freq_george+word_freq_650+word_freq_1999+word_freq_meeting+word_freq_original+word_freq_project+word_freq_re+word_freq_edu+word_freq_conference+char_freq_..3+char_freq_..4+char_freq_..5, family=binomial, data=train)
 
-test_model_sig <- glm(classes ~ word_freq_our+word_freq_remove+word_freq_free+word_freq_email+word_freq_your+word_freq_money+word_freq_hp+word_freq_george+word_freq_415+word_freq_technology+word_freq_1999+word_freq_project+word_freq_re+word_freq_edu+char_freq_.+char_freq_..4+char_freq_..5+capital_run_length_longest, family=binomial, data=test)
+test_model_sig_dis <- glm(classes ~ word_freq_our+word_freq_remove+word_freq_internet+word_freq_free+word_freq_your+word_freq_money+word_freq_hp+word_freq_george+word_freq_meeting+word_freq_project+word_freq_edu+char_freq_..3+char_freq_..4, family=binomial, data=test)
 
 ```
 
 ```{r}
 # Confusion matrix
-Probs_train_sig = predict(train_model_sig, type='response')
-Probs_test_sig = predict(test_model_sig, type='response')
+Probs_train_sig = predict(train_model_sig_dis, type='response')
+Probs_test_sig = predict(test_model_sig_dis, type='response')
 
 Pred_trend_train = ifelse(Probs_train_sig>0.5, 1, 0)
 table(Pred_trend_train, train$classes)
@@ -723,24 +590,19 @@ cat("Test error rate of model is :", lda.pca.error)
 ```
 
 ### (2) Quadratic Discriminant Analysis
-**When applying normal qda to discretized data, we found that it has rank deficiency in group 0, which means that either this data has zero variance or it is perfectly collinear with another group, thus we cannot process a qda normaly, and we try PCA below. PCA gives a result of ____ error rate.**
+**When applying normal qda to discretized data, we found that it has rank deficiency in group 0, which means that either this data has zero variance or it is perfectly collinear with another group, thus we cannot process a qda normaly, and we try PCA below. PCA gives a result of 0.093 error rate.**
 
 ```{r}
 # Train QDA
-true = test$classes
-qda_stand = qda(classes ~., data = train)
-qda_pred = predict(qda_stand, train)
-pred_val_qda = qda_pred$class
-test_error_qda = mean(pred_val_qda != true)
-cat("Test error rate of model is: ", test_error_qda)
+try(qda(classes ~., data = train))
 ```
 
 ```{r}
 # Apply PCA
-pca_train <- prcomp(train, rank = 6)$x
+pca_train <- prcomp(train, rank = 10)$x
 pca_train <- as.data.frame(pca_train)
 pca_train$classes <- train$classes
-pca_test = prcomp(test, rank = 6)$x
+pca_test = prcomp(test, rank = 10)$x
 pca_test <- as.data.frame(pca_test)
 pca_test$classes <- test$classes
 
@@ -754,63 +616,7 @@ cat("Train error rate: ", train_error, "\n")
 cat("Test error rate: ", test_error)
 ```
 
-## 3.Support Vector Machines
-```{r}
-# library
-library(e1071)
-library(caret)
 
-```
-
-### (1) Linear Model
-**After cross-validation the best C is found to be 10. We can see that the accuracy of the linear support vector machine for the third data is 92.57%.**
-```{r}
-svmfit.linear1 <- svm(classes~., data = train, kernel = "linear", 
-                      cost = 10, scale=FALSE)
-
-# Check the classifier
-summary(svmfit.linear1)
-# Choose cost C by cross validation
-tune.linear1 <- tune(svm, classes~., data = train, kernel = "linear", 
-                     ranges = list(cost=c(0.001, 0.01, 0.1, 1, 10,
-                                          100)))
-
-
-# Check the selection resutls
-summary(tune.linear1)
-# Choose the best model (classifier with optimal C)
-bestmod.linear1 <- tune.linear1$best.model
-# Check the classifier
-summary(bestmod.linear1)
-# Prediction on test set
-ypred.linear1 <- predict(bestmod.linear1, test)
-# Check the prediction accuracy
-confusionMatrix(table(ypred.linear1, test$classes))
-
-```
-
-### (2) Nonlinear SVM
-**After cross-validation the best C is found to be 1. We can see that the accuracy of the nonlinear support vector machine for the third data is 95.24%.**
-```{r}
-svmfit.gaussian1 <- svm(classes~., data = train, kernel ="radial", 
-                        gamma = 1, cost = 10)
-summary(svmfit.gaussian1)
-
-# Choose cost C and gamma by cross validation
-tune.gaussian1 <- tune(svm, classes~., data = train, kernel = "radial", 
-                       ranges = list(cost = c(0.01, 0.1, 0.5, 1),
-                                     gamma=c(0.1, 0.5, 1)))
-# Check the selection resutls
-summary(tune.gaussian1)
-# Choose the best model (classifier with optimal C)
-bestmod.gaussian1 <- tune.gaussian1$best.model
-# Check the classifier
-summary(bestmod.gaussian1)
-# Prediction on test set
-ypred.gaussian1 <- predict(bestmod.gaussian1, test)
-# Check the prediction accuracy
-confusionMatrix(table(ypred.gaussian1, test$classes))
-```
 
 
 ## 4. Tree-based Models
