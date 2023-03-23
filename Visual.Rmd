@@ -1,18 +1,159 @@
 ---
-title: "full"
+title: "Visualization"
 author: "AmyLiu"
 date: "2023-03-21"
 output: pdf_document
 ---
 
-```{r}
-# correlation
-# cor(train)
 
+----------
+# Standardized
+
+```{r}
+test <- read.csv("test_stand.csv")
+test <- subset(test, select = -c(1))
+train <- read.csv("train_stand.csv")
+train <- subset(train, select = -c(1))
+
+# Train
+# correlation
+cor(train[, colnames(train) != "classes"],  # Calculate correlations
+                train$classes)
+
+# boxplot
+# We choose the pairs which are more associated
+boxplot(train$word_freq_3d ~ train$classes, xlab = "train classes", ylab = "word_freq_3d")
+boxplot(train$word_freq_our ~ train$classes, xlab = "train classes", ylab = "word_freq_our")
+boxplot(train$word_freq_remove ~ train$classes, xlab = "train classes", ylab = "word_freq_remove")
+boxplot(train$word_freq_internet ~ train$classes, xlab = "train classes", ylab = "word_freq_internet")
+boxplot(train$word_freq_order ~ train$classes, xlab = "train classes", ylab = "word_freq_order")
+boxplot(train$word_freq_receive ~ train$classes, xlab = "train classes", ylab = "word_freq_receive")
+
+
+# PCA
+pca = prcomp(subset(train, select = -c(classes)), scale = TRUE, rank=12)
+pca_var = pca$sdev^2
+pve = pca_var/sum(pca_var)
+plot(pve, xlab = "Pricipal Component for train", ylab = "Proportion of Variance Explained")
+
+
+
+# Test
 # boxplot 
-for (i in 1:57) {
-  boxplot(train[,i] ~ train$classes, xlab = "classes", ylab = names(train)[i])
-}
+# We choose the pairs which are more associated
+boxplot(test$word_freq_free ~ test$classes, xlab = "test classes", ylab = "word_freq_free")
+boxplot(test$word_freq_our ~ test$classes, xlab = "test classes", ylab = "word_freq_our")
+boxplot(test$word_freq_remove ~ test$classes, xlab = "test classes", ylab = "word_freq_remove")
+boxplot(test$word_freq_email ~ test$classes, xlab = "test classes", ylab = "word_freq_email")
+boxplot(test$word_freq_your ~ test$classes, xlab = "test classes", ylab = "word_freq_your")
+boxplot(test$word_freq_money ~ test$classes, xlab = "test classes", ylab = "word_freq_money")
+
+# PCA
+pca = prcomp(subset(test, select = -c(classes)), scale = TRUE, rank=12)
+pca_var = pca$sdev^2
+pve = pca_var/sum(pca_var)
+pve
+plot(pve, xlab = "Pricipal Component for test", ylab = "Proportion of Variance Explained")
 
 ```
 
+---------
+# Log
+
+```{r}
+test <- read.csv("test_log.csv")
+test <- subset(test, select = -c(1))
+train <- read.csv("train_log.csv")
+train <- subset(train, select = -c(1))
+
+# Train
+# correlation
+cor(train[, colnames(train) != "classes"],  # Calculate correlations
+                train$classes)
+
+# boxplot
+# We choose the pairs which are more associated
+boxplot(train$word_freq_free ~ train$classes, xlab = "train classes", ylab = "word_freq_free")
+boxplot(train$word_freq_our ~ train$classes, xlab = "train classes", ylab = "word_freq_our")
+boxplot(train$word_freq_remove ~ train$classes, xlab = "train classes", ylab = "word_freq_remove")
+boxplot(train$word_freq_internet ~ train$classes, xlab = "train classes", ylab = "word_freq_internet")
+boxplot(train$word_freq_people ~ train$classes, xlab = "train classes", ylab = "word_freq_people")
+boxplot(train$word_freq_receive ~ train$classes, xlab = "train classes", ylab = "word_freq_receive")
+
+
+# PCA
+pca = prcomp(subset(train, select = -c(classes)), scale = TRUE, rank=12)
+pca_var = pca$sdev^2
+pve = pca_var/sum(pca_var)
+plot(pve, xlab = "Pricipal Component for train", ylab = "Proportion of Variance Explained")
+
+
+
+# Test
+# boxplot 
+# We choose the pairs which are more associated
+boxplot(test$word_freq_free ~ test$classes, xlab = "test classes", ylab = "word_freq_free")
+boxplot(test$word_freq_our ~ test$classes, xlab = "test classes", ylab = "word_freq_our")
+boxplot(test$word_freq_remove ~ test$classes, xlab = "test classes", ylab = "word_freq_remove")
+boxplot(test$word_freq_hp ~ test$classes, xlab = "test classes", ylab = "word_freq_hp")
+boxplot(test$word_freq_415 ~ test$classes, xlab = "test classes", ylab = "word_freq_415")
+boxplot(test$word_freq_money ~ test$classes, xlab = "test classes", ylab = "word_freq_money")
+
+# PCA
+pca = prcomp(subset(test, select = -c(classes)), scale = TRUE, rank=12)
+pca_var = pca$sdev^2
+pve = pca_var/sum(pca_var)
+pve
+plot(pve, xlab = "Pricipal Component for test", ylab = "Proportion of Variance Explained")
+```
+
+
+---------
+# Discretized
+
+```{r}
+test <- read.csv("test_dis.csv")
+test <- subset(test, select = -c(1))
+train <- read.csv("train_dis.csv")
+train <- subset(train, select = -c(1))
+
+# Train
+# correlation
+cor(train[, colnames(train) != "classes"],  # Calculate correlations
+                train$classes)
+
+# boxplot
+# We choose the pairs which are more associated
+boxplot(train$word_freq_free ~ train$classes, xlab = "train classes", ylab = "word_freq_free")
+boxplot(train$word_freq_our ~ train$classes, xlab = "train classes", ylab = "word_freq_our")
+boxplot(train$word_freq_remove ~ train$classes, xlab = "train classes", ylab = "word_freq_remove")
+boxplot(train$word_freq_internet ~ train$classes, xlab = "train classes", ylab = "word_freq_internet")
+boxplot(train$word_freq_people ~ train$classes, xlab = "train classes", ylab = "word_freq_people")
+boxplot(train$word_freq_receive ~ train$classes, xlab = "train classes", ylab = "word_freq_receive")
+
+
+# PCA
+pca = prcomp(train, rank=12)
+pca_var = pca$sdev^2
+pve = pca_var/sum(pca_var)
+plot(pve, xlab = "Pricipal Component for train", ylab = "Proportion of Variance Explained")
+
+
+
+# Test
+# boxplot 
+# We choose the pairs which are more associated
+boxplot(test$word_freq_free ~ test$classes, xlab = "test classes", ylab = "word_freq_free")
+boxplot(test$word_freq_our ~ test$classes, xlab = "test classes", ylab = "word_freq_our")
+boxplot(test$word_freq_remove ~ test$classes, xlab = "test classes", ylab = "word_freq_remove")
+boxplot(test$word_freq_hp ~ test$classes, xlab = "test classes", ylab = "word_freq_hp")
+boxplot(test$word_freq_your ~ test$classes, xlab = "test classes", ylab = "word_freq_your")
+boxplot(test$word_freq_money ~ test$classes, xlab = "test classes", ylab = "word_freq_money")
+
+# PCA
+pca = prcomp(test, rank=12)
+pca_var = pca$sdev^2
+pve = pca_var/sum(pca_var)
+pve
+plot(pve, xlab = "Pricipal Component for test", ylab = "Proportion of Variance Explained")
+```
